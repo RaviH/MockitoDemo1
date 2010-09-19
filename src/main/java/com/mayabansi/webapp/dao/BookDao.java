@@ -14,5 +14,7 @@ import java.util.List;
  */
 public interface BookDao extends GenericDao<Book, Long> {
 
-    public List<Book> getPromotionsBasedOnUser(Long userId);
+    public List<Book> getSpecialPromotionsBasedOnUser(Long userId);
+
+    public List<Book> getTop5BooksOnSale();
 }

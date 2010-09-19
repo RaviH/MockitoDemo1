@@ -1,14 +1,11 @@
 package com.mayabansi.webapp.service;
 
 import com.mayabansi.webapp.dao.BookDao;
-import com.mayabansi.webapp.dao.CustomerDao;
 import com.mayabansi.webapp.domain.Book;
-import org.appfuse.dao.GenericDao;
 import org.appfuse.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,10 +15,12 @@ import java.util.List;
  * Time: 1:22:08 AM
  * To change this template use File | Settings | File Templates.
  */
+@Service
 public class PromotionsService {
 
     BookDao bookDao;
-    CustomerDao customerDao;
+    CustomerSpecialsService customerSpecialsService;
+    WeeklySpecialsService weeklySpecialsService;
 
     @Autowired
     public void setBookDao(BookDao bookDao) {
@@ -29,29 +28,26 @@ public class PromotionsService {
     }
 
     @Autowired
-    public void setCustomerDao(CustomerDao customerDao) {
-        this.customerDao = customerDao;        
+    public void setWeeklySpecialsService(WeeklySpecialsService weeklySpecialsService) {
+        this.weeklySpecialsService = weeklySpecialsService;
+    }
+
+    @Autowired
+    public void setCustomerSpecialsService(CustomerSpecialsService customerSpecialsService) {
+        this.customerSpecialsService = customerSpecialsService;
     }
 
     public List<Book> getPromotions(final User user) {
         List<Book> bookList = null;
 
         if (user == null) {
-            bookList = bookDao.getAll();
+            bookList = bookDao.getTop5BooksOnSale();
         } else {
-            bookList = bookDao.getPromotionsBasedOnUser(user.getId());
+            bookList = bookDao.getSpecialPromotionsBasedOnUser(user.getId());
         }
 
-        if (customerDao.isCustomerSpecial(user.getId())) {
-            for (int i=0; i<bookList.size(); i++) {
-                Book book = bookList.get(i);
-                Double price = book.getPrice();
-                Double priceOff = price*0.10;
-                Double newPrice = price - priceOff;
-                book.setPrice(newPrice);
-                bookList.set(i, book);
-            }
-        }
+        customerSpecialsService.applySpecials(bookList, user);
+        weeklySpecialsService.applyWeeklySpecials(bookList);
 
         return bookList;
     }
