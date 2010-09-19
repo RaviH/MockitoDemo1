@@ -6,6 +6,7 @@ import org.appfuse.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,16 +38,33 @@ public class PromotionsService {
         this.customerSpecialsService = customerSpecialsService;
     }
 
-    public List<Book> getPromotions(final User user) {
-        List<Book> bookList = null;
+    public List<Book> getSimplePromotions(final User user) {
+        List<Book> bookList = new ArrayList<Book>();
 
         if (user == null) {
             bookList = bookDao.getTop5BooksOnSale();
         } else {
-            bookList = bookDao.getSpecialPromotionsBasedOnUser(user.getId());
+            bookList = bookDao.getSpecialPromotionsBasedOnUser(user);
         }
 
-        customerSpecialsService.applySpecials(bookList, user);
+        return bookList;
+    }
+
+    public List<Book> getPromotions(final User user) {
+        List<Book> bookList = new ArrayList<Book>();
+
+        if (user == null) {
+            bookList = bookDao.getTop5BooksOnSale();
+        } else {
+            bookList = bookDao.getSpecialPromotionsBasedOnUser(user);
+        }
+
+        if (user == null) {
+            bookList = customerSpecialsService.getSpecials();
+        } else {
+            bookList.addAll(customerSpecialsService.applySpecials(bookList, user));
+        }
+
         weeklySpecialsService.applyWeeklySpecials(bookList);
 
         return bookList;

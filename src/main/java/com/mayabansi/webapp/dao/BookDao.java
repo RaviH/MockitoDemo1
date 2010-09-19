@@ -2,6 +2,7 @@ package com.mayabansi.webapp.dao;
 
 import com.mayabansi.webapp.domain.Book;
 import org.appfuse.dao.GenericDao;
+import org.appfuse.model.User;
 
 import java.util.List;
 
@@ -14,7 +15,7 @@ import java.util.List;
  */
 public interface BookDao extends GenericDao<Book, Long> {
 
-    public List<Book> getSpecialPromotionsBasedOnUser(Long userId);
+    public List<Book> getSpecialPromotionsBasedOnUser(User user);
 
     public List<Book> getTop5BooksOnSale();
 }

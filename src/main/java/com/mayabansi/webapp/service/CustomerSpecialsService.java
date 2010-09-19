@@ -1,11 +1,13 @@
 package com.mayabansi.webapp.service;
 
+import com.mayabansi.webapp.dao.BookDao;
 import com.mayabansi.webapp.dao.CustomerDao;
 import com.mayabansi.webapp.domain.Book;
 import org.appfuse.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -19,10 +21,16 @@ import java.util.List;
 public class CustomerSpecialsService {
 
     CustomerDao customerDao;
+    BookDao bookDao;
 
     @Autowired
     public void setCustomerDao(CustomerDao customerDao) {
         this.customerDao = customerDao;
+    }
+
+    @Autowired
+    public void setBookDao(BookDao bookDao) {
+        this.bookDao = bookDao;
     }
 
 
@@ -40,5 +48,15 @@ public class CustomerSpecialsService {
         }
 
         return bookList;
+    }
+
+    public List<Book> getSpecials() {
+        final Book[] booksOnSpecialPromotionArr = new Book[]{
+                new Book("Special #1", 20.00D, 2005),
+                new Book("Special #2", 10.00D, 2010),
+                new Book("Special #3", 100.00D, 2006)
+        };
+
+        return Arrays.asList(booksOnSpecialPromotionArr);
     }
 }
