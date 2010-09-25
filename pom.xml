@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.mayabansi</groupId>
@@ -236,7 +237,8 @@
                             <includes>ApplicationResources_ko.properties,
                                 ApplicationResources_no.properties,
                                 ApplicationResources_tr.properties,
-                                ApplicationResources_zh*.properties</includes>
+                                ApplicationResources_zh*.properties
+                            </includes>
                         </configuration>
                     </execution>
                     <execution>
@@ -249,7 +251,8 @@
                             <includes>ApplicationResources_de.properties,
                                 ApplicationResources_fr.properties,
                                 ApplicationResources_nl.properties,
-                                ApplicationResources_pt*.properties</includes>
+                                ApplicationResources_pt*.properties
+                            </includes>
                         </configuration>
                     </execution>
                 </executions>
@@ -412,10 +415,10 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
-            <version>1.8.1</version>
+            <version>1.8.5</version>
             <scope>test</scope>
         </dependency>
-            
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
@@ -517,20 +520,21 @@
                         <configuration>
                             <tasks>
                                 <taskdef resource="webtest_base_relaxed.taskdef">
-                                    <classpath refid="maven.test.classpath" />
+                                    <classpath refid="maven.test.classpath"/>
                                 </taskdef>
-                                <mkdir dir="target/webtest-data" />
+                                <mkdir dir="target/webtest-data"/>
                                 <!-- Delete old results file if it exists -->
-                                <delete file="target/webtest-data/web-tests-result.xml" />
+                                <delete file="target/webtest-data/web-tests-result.xml"/>
                                 <!-- This is so the default will be used if no test case is specified -->
-                                <property name="test" value="run-all-tests" />
-                                <property name="i18n.classpath" value="${basedir}/target/classes" />
-                                <echo level="info">Testing '${project.build.finalName}' with locale '${user.language}'</echo>
+                                <property name="test" value="run-all-tests"/>
+                                <property name="i18n.classpath" value="${basedir}/target/classes"/>
+                                <echo level="info">Testing '${project.build.finalName}' with locale '${user.language}'
+                                </echo>
                                 <ant antfile="src/test/resources/web-tests.xml" target="${test}">
-                                    <property name="user.language" value="${user.language}" />
-                                    <property name="webapp.name" value="${project.build.finalName}" />
-                                    <property name="host" value="${cargo.host}" />
-                                    <property name="port" value="${cargo.port}" />
+                                    <property name="user.language" value="${user.language}"/>
+                                    <property name="webapp.name" value="${project.build.finalName}"/>
+                                    <property name="host" value="${cargo.host}"/>
+                                    <property name="port" value="${cargo.port}"/>
                                 </ant>
                             </tasks>
                         </configuration>
@@ -617,7 +621,8 @@
             <id>oracle</id>
             <properties>
                 <dbunit.dataTypeFactoryName>org.dbunit.ext.oracle.OracleDataTypeFactory</dbunit.dataTypeFactoryName>
-                <dbunit.schema>SYSTEM</dbunit.schema> <!-- Make sure to capitalize the schema name -->
+                <dbunit.schema>SYSTEM</dbunit.schema>
+                <!-- Make sure to capitalize the schema name -->
                 <hibernate.dialect>org.hibernate.dialect.Oracle9Dialect</hibernate.dialect>
                 <jdbc.groupId>com.oracle</jdbc.groupId>
                 <jdbc.artifactId>ojdbc14</jdbc.artifactId>
@@ -665,7 +670,8 @@
             <properties>
                 <cargo.container>jboss4x</cargo.container>
                 <cargo.container.home>${env.JBOSS_HOME}</cargo.container.home>
-                <cargo.container.url>http://easynews.dl.sourceforge.net/sourceforge/jboss/jboss-4.0.5.GA.zip</cargo.container.url>
+                <cargo.container.url>http://easynews.dl.sourceforge.net/sourceforge/jboss/jboss-4.0.5.GA.zip
+                </cargo.container.url>
             </properties>
         </profile>
     </profiles>
@@ -702,7 +708,8 @@
 
         <cargo.container>tomcat6x</cargo.container>
         <cargo.container.home>${env.CATALINA_HOME}</cargo.container.home>
-        <cargo.container.url>http://archive.apache.org/dist/tomcat/tomcat-6/v6.0.20/bin/apache-tomcat-6.0.20.zip</cargo.container.url>
+        <cargo.container.url>http://archive.apache.org/dist/tomcat/tomcat-6/v6.0.20/bin/apache-tomcat-6.0.20.zip
+        </cargo.container.url>
         <cargo.host>localhost</cargo.host>
         <cargo.port>8081</cargo.port>
         <cargo.wait>false</cargo.wait>
