@@ -136,15 +136,15 @@ public class PromotionServiceTest {
 
     @Test(expected = RuntimeException.class)
     public void stub_Exceptions_1() {
-        when(mockedBookDao.get(1L)).thenThrow(new RuntimeException());
 
+        when(mockedBookDao.get(1L)).thenThrow(new RuntimeException());
         mockedBookDao.get(1L);
     }
 
     @Test(expected = IllegalStateException.class)
     public void stub_Exceptions_2() {
-        doThrow(new IllegalStateException("Illegal")).when(mockedBookDao).remove(1L);
 
+        doThrow(new IllegalStateException("Illegal")).when(mockedBookDao).remove(1L);
         mockedBookDao.remove(1L);
     }
 
