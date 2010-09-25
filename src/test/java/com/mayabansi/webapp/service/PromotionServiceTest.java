@@ -124,6 +124,19 @@ public class PromotionServiceTest {
     }
 
     @Test
+    public void show_Multiple_Stubbing_3() {
+        Book book1 = new Book().setTitle("Book #1");
+        Book book2 = new Book().setTitle("Book #2");
+
+        when(mockedBookDao.get(1L))
+                .thenReturn(book1, book2, book1);
+
+        assertEquals("Book #1", mockedBookDao.get(1L).getTitle());
+        assertEquals("Book #2", mockedBookDao.get(1L).getTitle());
+        assertEquals("Book #1", mockedBookDao.get(1L).getTitle());
+    }
+
+    @Test
     public void last_Stubbing_Rules() {
         Book book1 = new Book().setTitle("Book #1");
         Book book2 = new Book().setTitle("Book #2");
