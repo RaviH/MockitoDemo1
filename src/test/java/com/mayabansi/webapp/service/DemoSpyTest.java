@@ -17,7 +17,7 @@ import static org.mockito.Mockito.doReturn;
  * To change this template use File | Settings | File Templates.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ProfileServiceTest {
+public class DemoSpyTest {
 
     @Spy
     ProfileService profileService = new ProfileService();

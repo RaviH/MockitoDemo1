@@ -24,4 +24,12 @@ public class ThirdStep {
     public void someVeryImportantBusinessMethod() {
         log.info("someVeryImportantBusinessMethod.");
     }
+
+    public void addSomethingToCart(ThirdStepType thirdStepType) {
+        log.info("addSomethingToCart was called with: " + thirdStepType);
+    }
+
+    public enum ThirdStepType {
+        NEW, ALREADY_EXISTS
+    }
 }
