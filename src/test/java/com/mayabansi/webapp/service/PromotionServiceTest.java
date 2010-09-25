@@ -15,8 +15,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 
@@ -51,7 +50,7 @@ public class PromotionServiceTest {
      * <p/>
      * From mockito website:
      * <p/>
-     * By default, for all methods that return value, mock returns null, an empty collection or
+     * By default for all methods that return value, mock returns null, an empty collection or
      * appropriate primitive/primitive wrapper value (e.g: 0, false, ... for int/Integer, boolean/Boolean, ...).
      */
     @Test
@@ -63,16 +62,10 @@ public class PromotionServiceTest {
         // Business logic under test - Test passing of null user.
         final List<Book> promotionList = promotionsService.getSimplePromotions(null);
 
-        // Verification of behavior
-        verify(mockedBookDao).getTop5BooksOnSale();
-        verify(mockedBookDao, times(1)).getTop5BooksOnSale();
-        verify(mockedBookDao, never()).getSpecialPromotionsBasedOnUser(null);
-
         // Regular JUnit Asserts
         assertNotNull(promotionList);
         assertTrue(promotionList.size() == 0); // <= NOTE: The size of the list is 0 instead of 1.
     }
-
 
     @Test
     public void show_How_Stubbing_Works() {
@@ -102,6 +95,80 @@ public class PromotionServiceTest {
         assertNotNull(promotionList);
         assertTrue(promotionList.size() == 3); // Stubbed method being called because the size is 3. The real method returns 1 element list.
     }
+
+    @Test
+    public void show_Multiple_Stubbing_1() {
+        Book book1 = new Book().setTitle("Book #1");
+        Book book2 = new Book().setTitle("Book #2");
+
+        when(mockedBookDao.get(1L)).thenReturn(book1);
+        assertEquals("Book #1", mockedBookDao.get(1L).getTitle());
+
+        when(mockedBookDao.get(1L)).thenReturn(book2);
+        assertEquals("Book #2", mockedBookDao.get(1L).getTitle());
+    }
+
+    @Test
+    public void show_Multiple_Stubbing_2() {
+        Book book1 = new Book().setTitle("Book #1");
+        Book book2 = new Book().setTitle("Book #2");
+
+        when(mockedBookDao.get(1L))
+                .thenReturn(book1)
+                .thenReturn(book2)
+                .thenReturn(book1);
+
+        assertEquals("Book #1", mockedBookDao.get(1L).getTitle());
+        assertEquals("Book #2", mockedBookDao.get(1L).getTitle());
+        assertEquals("Book #1", mockedBookDao.get(1L).getTitle());
+    }
+
+    @Test
+    public void last_Stubbing_Rules() {
+        Book book1 = new Book().setTitle("Book #1");
+        Book book2 = new Book().setTitle("Book #2");
+
+        when(mockedBookDao.get(1L)).thenReturn(book1);
+        when(mockedBookDao.get(1L)).thenReturn(book2);
+
+        assertEquals("Book #2", mockedBookDao.get(1L).getTitle());
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void stub_Exceptions_1() {
+        when(mockedBookDao.get(1L)).thenThrow(new RuntimeException());
+
+        mockedBookDao.get(1L);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void stub_Exceptions_2() {
+        doThrow(new IllegalStateException("Illegal")).when(mockedBookDao).remove(1L);
+
+        mockedBookDao.remove(1L);
+    }
+
+    @Test
+    public void show_Verification() {
+
+        // Inject the mocked DAO
+        promotionsService.setBookDao(mockedBookDao);
+
+        // Business logic under test - Test passing of null user.
+        final List<Book> promotionList = promotionsService.getSimplePromotions(null);
+
+        // Notice the different types of verify below
+        verify(mockedBookDao).getTop5BooksOnSale();
+        verify(mockedBookDao, times(1)).getTop5BooksOnSale();
+
+        verify(mockedBookDao, never()).getSpecialPromotionsBasedOnUser(null);
+
+        verify(mockedBookDao, atLeastOnce()).getTop5BooksOnSale();
+        verify(mockedBookDao, atLeast(1)).getTop5BooksOnSale();
+
+        verify(mockedBookDao, atMost(1)).getTop5BooksOnSale();
+    }
+
 
     @Test
     public void services_Are_Being_Mocked_Here() {

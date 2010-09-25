@@ -20,7 +20,7 @@ public class WeeklySpecialsService {
         for (int i = 0; i < bookList.size(); i++) {
             final Book book = bookList.get(i);
             final Double orgPrice = book.getPrice();
-            Double newPrice = orgPrice;
+            double newPrice = orgPrice;
 
             if (orgPrice < 50D) {
                 // Apply 30% discount.
