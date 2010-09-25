@@ -2,9 +2,10 @@ package com.mayabansi.webapp.dao;
 
 import com.mayabansi.webapp.domain.Book;
 import org.appfuse.dao.hibernate.GenericDaoHibernate;
+import org.appfuse.model.User;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -21,11 +22,23 @@ public class BookDaoHibernate extends GenericDaoHibernate<Book, Long> implements
         super(Book.class);
     }
 
-    public List<Book> getSpecialPromotionsBasedOnUser(Long userId) {
-        return new ArrayList<Book>();
+    public List<Book> getSpecialPromotionsBasedOnUser(User user) {
+        final Book[] bookArr = new Book[]{
+                new Book("Special Book #1", 25.00D, 2005)
+        };
+
+        return Arrays.asList(bookArr);
     }
 
     public List<Book> getTop5BooksOnSale() {
-        return new ArrayList<Book>();
+        final Book[] bookArr = new Book[]{
+                new Book("Top Book #1", 25.00D, 2005),
+                new Book("Top Book #2", 50.00D, 2005),
+                new Book("Top Book #3", 75.00D, 2005),
+                new Book("Top Book #4", 100.00D, 2005),
+                new Book("Top Book #5", 125.00D, 2005)
+        };
+
+        return Arrays.asList(bookArr);
     }
 }

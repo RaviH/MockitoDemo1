@@ -36,39 +36,14 @@ public class PromotionServiceTest {
     @Mock
     CustomerDao customerDao;
 
+    PromotionsService promotionsService;
+    User user;
+
     CustomerSpecialsService realCustomerSpecialsService = new CustomerSpecialsService();
     WeeklySpecialsService realWeeklySpecialsService = new WeeklySpecialsService();
 
     static List<Book> top5BooksOnSaleList;
     static List<Book> booksOnSpecialPromotionList;
-
-
-    @BeforeClass
-    public static void beforeClass() {
-        final Book[] bookArr = new Book[]{
-                new Book("Beautiful life", 25.00D, 2005),
-                new Book("Sarasota rocks", 15.00D, 2010),
-                new Book("Music gives soul", 125.00D, 2006),
-                new Book("Mocking using Mockito", 20.00D, 2004),
-                new Book("Why we should?", 99.00D, 2009)
-        };
-
-        top5BooksOnSaleList = Arrays.asList(bookArr);
-
-        final Book[] booksOnSpecialPromotionArr = new Book[]{
-                new Book("Beautiful life", 20.00D, 2005),
-                new Book("Sarasota rocks", 10.00D, 2010),
-                new Book("Music gives soul", 100.00D, 2006),
-                new Book("Mocking using Mockito", 15.00D, 2004),
-        };
-
-        booksOnSpecialPromotionList = Arrays.asList(booksOnSpecialPromotionArr);
-    }
-
-    @Before
-    public void beforeEachMethod() {
-    }
-
 
     /**
      * Test to show if we do not stub methods in a mocked object,
@@ -81,16 +56,11 @@ public class PromotionServiceTest {
      */
     @Test
     public void simple_Non_Stubbed_Mocks_Will_Cause_Default_Values_To_Be_Returned() {
-        // Mocking the BookDao
-        BookDao mockedBookDao = mock(BookDao.class);
 
-        final PromotionsService promotionsService = new PromotionsService();
-        // Injecting mocked DAO
+        // Inject the mocked DAO
         promotionsService.setBookDao(mockedBookDao);
-        promotionsService.setCustomerSpecialsService(realCustomerSpecialsService);
-        promotionsService.setWeeklySpecialsService(realWeeklySpecialsService);
 
-        // Business logic under test - Testing passing of null user.
+        // Business logic under test - Test passing of null user.
         final List<Book> promotionList = promotionsService.getSimplePromotions(null);
 
         // Verification of behavior
@@ -100,36 +70,41 @@ public class PromotionServiceTest {
 
         // Regular JUnit Asserts
         assertNotNull(promotionList);
-        assertTrue(promotionList.size() == 0); // <= 0 because the mock returned 0 size list.
+        assertTrue(promotionList.size() == 0); // <= NOTE: The size of the list is 0 instead of 1.
     }
 
 
     @Test
     public void show_How_Stubbing_Works() {
+
+        /**
+         * Set up phase.
+         *
+         * 1. Create Mocks,
+         * 2. Stub only required methods
+         * 3. Inject the mock objects.
+         */
+
         // Stubbing
         when(mockedBookDao.getTop5BooksOnSale()).thenReturn(top5BooksOnSaleList);
-        when(mockedBookDao.getSpecialPromotionsBasedOnUser(null)).thenReturn(booksOnSpecialPromotionList);
+        when(mockedBookDao.getSpecialPromotionsBasedOnUser(Matchers.<User>anyObject())).thenReturn(booksOnSpecialPromotionList);
 
-        final PromotionsService promotionsService = new PromotionsService();
         // Injecting mocked DAO
         promotionsService.setBookDao(mockedBookDao);
-        promotionsService.setCustomerSpecialsService(new CustomerSpecialsService()); // <--Real Service
-        promotionsService.setWeeklySpecialsService(new WeeklySpecialsService()); // <-- Real Service
 
-        // Passing in null user
-        final List<Book> promotionList = promotionsService.getSimplePromotions(null);
+        // Calling business method
+        final List<Book> promotionList = promotionsService.getSimplePromotions(user);
 
         // Verification of behavior
-        verify(mockedBookDao).getTop5BooksOnSale();
-        verify(mockedBookDao, times(1)).getTop5BooksOnSale();
-        verify(mockedBookDao, never()).getSpecialPromotionsBasedOnUser(null);
+        verify(mockedBookDao, never()).getTop5BooksOnSale();
+        verify(mockedBookDao).getSpecialPromotionsBasedOnUser(user);
 
         assertNotNull(promotionList);
-        assertTrue(promotionList.size() == 5); // Stubbed method being called because the size is 3.
+        assertTrue(promotionList.size() == 3); // Stubbed method being called because the size is 3. The real method returns 1 element list.
     }
 
     @Test
-    public void test_NullUser_3() {
+    public void services_Are_Being_Mocked_Here() {
         //Mock
         CustomerSpecialsService customerSpecialsService = mock(CustomerSpecialsService.class);
         WeeklySpecialsService weeklySpecialsService = mock(WeeklySpecialsService.class);
@@ -148,26 +123,21 @@ public class PromotionServiceTest {
         final List<Book> promotionList = promotionsService.getPromotions(null);
 
         verify(mockedBookDao).getTop5BooksOnSale();
-        verify(mockedBookDao, times(1)).getTop5BooksOnSale();
         verify(mockedBookDao, never()).getSpecialPromotionsBasedOnUser(null);
         verify(customerSpecialsService, never()).applySpecials(anyList(), Matchers.<User>anyObject());
         verify(customerSpecialsService).getSpecials();
 
-
         assertNotNull(promotionList);
-        assertTrue(promotionList.size() == 4);
+        assertTrue(promotionList.size() == 3);
     }
 
 
     @Test
-    public void testNonNullUser() {
+    public void non_Null_User() {
 
         //Mock
         CustomerSpecialsService customerSpecialsService = mock(CustomerSpecialsService.class);
         WeeklySpecialsService weeklySpecialsService = new WeeklySpecialsService();
-
-        User user = new User("ravi.hasija@gmail.com");
-        user.setId(1L);
 
         // Stubbing
         when(mockedBookDao.getTop5BooksOnSale()).thenReturn(top5BooksOnSaleList);
@@ -189,7 +159,37 @@ public class PromotionServiceTest {
 
         assertNotNull(promotionList);
         System.out.println("Size" + promotionList.size());
-        assertTrue(promotionList.size() == 4);
+        assertTrue(promotionList.size() == 3);
+    }
+
+    @BeforeClass
+    public static void beforeClass() {
+        final Book[] bookArr = new Book[]{
+                new Book("Beautiful life", 25.00D, 2005),
+                new Book("Sarasota rocks", 15.00D, 2010),
+                new Book("Music gives soul", 125.00D, 2006),
+                new Book("Mocking using Mockito", 20.00D, 2004),
+                new Book("Why we should?", 99.00D, 2009)
+        };
+
+        top5BooksOnSaleList = Arrays.asList(bookArr);
+
+        final Book[] booksOnSpecialPromotionArr = new Book[]{
+                new Book("Beautiful life", 20.00D, 2005),
+                new Book("Sarasota rocks", 10.00D, 2010),
+                new Book("Music gives soul", 100.00D, 2006)
+        };
+
+        booksOnSpecialPromotionList = Arrays.asList(booksOnSpecialPromotionArr);
+
+    }
+
+    @Before
+    public void beforeEachMethod() {
+        promotionsService = new PromotionsService();
+
+        user = new User("ravi.hasija@gmail.com");
+        user.setId(1L);
     }
 
 }
