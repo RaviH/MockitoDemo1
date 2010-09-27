@@ -7,6 +7,7 @@ import com.mayabansi.webapp.service.PromotionsService
 import com.mayabansi.webapp.service.WeeklySpecialsService
 import org.appfuse.model.User
 import spock.lang.Specification
+import spock.lang.Timeout
 
 /**
  * Created by IntelliJ IDEA.
@@ -29,6 +30,11 @@ class PromotionServiceSpec extends Specification {
 
     def setup() {
         promotionsService = new PromotionsService();
+
+        promotionsService.bookDao = bookDao
+        promotionsService.customerSpecialsService = customerSpecialsService
+        promotionsService.weeklySpecialsService = weeklySpecialsService
+
         user.setId(1L);
 
         top5BooksOnSaleList = [
@@ -48,145 +54,163 @@ class PromotionServiceSpec extends Specification {
 
     def "Show How Stubbing Works in Spock"() {
         setup:
-        promotionsService.setBookDao(bookDao)
+            1 * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
+            0 * bookDao.getSpecialPromotionsBasedOnUser(_ as User)
+
         when:
-        def list = promotionsService.getSimplePromotions(null)
+            def list = promotionsService.getSimplePromotions(null)
+
         then:
-        1 * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
-        0 * bookDao.getSpecialPromotionsBasedOnUser(_ as User)
-        list.size() == 5
+            list.size() == 5
     }
 
 
     def "Multiple Stubbing #1"() {
         setup:
-        Book book1 = new Book().setTitle("Book #1");
-        Book book2 = new Book().setTitle("Book #2");
+            Book book1 = new Book().setTitle("Book #1");
+            Book book2 = new Book().setTitle("Book #2");
 
         when:
-        def title1 = bookDao.get(1L).getTitle();
-        def title2 = bookDao.get(1L).getTitle();
+            def title1 = bookDao.get(1L).getTitle();
+            def title2 = bookDao.get(1L).getTitle();
         then:
-        2 * bookDao.get(1L) >>> [book1, book2];
-        "Book #1".equals(title1)
-        "Book #2".equals(title2)
+            2 * bookDao.get(1L) >>> [book1, book2];
+            "Book #1".equals(title1)
+            "Book #2".equals(title2)
     }
 
     def "Multiple Stubbing 2 and 3 from PromotionServiceTest are the same"() {
         setup:
-        Book book1 = new Book().setTitle("Book #1");
-        Book book2 = new Book().setTitle("Book #2");
+            Book book1 = new Book().setTitle("Book #1");
+            Book book2 = new Book().setTitle("Book #2");
+            3 * bookDao.get(1L) >>> [book1, book2, book1];
 
         when:
-        def title1 = bookDao.get(1L).getTitle();
-        def title2 = bookDao.get(1L).getTitle();
-        def title3 = bookDao.get(1L).getTitle();
+            def title1 = bookDao.get(1L).getTitle();
+            def title2 = bookDao.get(1L).getTitle();
+            def title3 = bookDao.get(1L).getTitle();
 
         then:
-        3 * bookDao.get(1L) >>> [book1, book2, book1];
-        "Book #1".equals(title1)
-        "Book #2".equals(title2)
-        "Book #1".equals(title3)
+             "Book #1".equals(title1)
+            "Book #2".equals(title2)
+            "Book #1".equals(title3)
     }
 
 
     def "In Spock First Stubbing Rules"() {
         setup:
-        Book book1 = new Book().setTitle("Book #1");
-        Book book2 = new Book().setTitle("Book #2");
+            Book book1 = new Book().setTitle("Book #1");
+            Book book2 = new Book().setTitle("Book #2");
+            2 * bookDao.get(1L) >> book1
+            bookDao.get(1L) >> book2
 
         when:
-        def title1 = bookDao.get(1L).getTitle();
-        def title2 = bookDao.get(1L).getTitle();
+            def title1 = bookDao.get(1L).getTitle();
+            def title2 = bookDao.get(1L).getTitle();
 
         then:
-        2 * bookDao.get(1L) >> book1
-        bookDao.get(1L) >> book2
-        "Book #1".equals(title1)
-        "Book #1".equals(title2)
+            "Book #1".equals(title1)
+            "Book #1".equals(title2)
     }
 
     def "Stub Exceptions in mock methods that return some value"() {
+        given:
+            1 * bookDao.get(1L) >> {throw new RuntimeException()}
         when:
-        bookDao.get(1L)
+            bookDao.get(1L)
         then:
-        1 * bookDao.get(1L) >> {throw new RuntimeException()}
-        thrown(RuntimeException)
+            thrown(RuntimeException)
     }
 
     def "Stub exceptions in mock methods that are void"() {
+        given:
+            1 * bookDao.remove(1L) >> { throw new RuntimeException() }
         when:
-        bookDao.remove(1L)
+            bookDao.remove(1L)
         then:
-        1 * bookDao.remove(1L) >> { throw new RuntimeException() }
-        thrown(RuntimeException)
+
+            thrown(RuntimeException)
+    }
+
+    def "computing the maximum of two numbers **Demo expect and where**"(int a, int b, int c) {
+        expect:
+            Math.max(a, b) == c
+
+        where:
+            a << [5, 3]
+            b << [1, 9]
+            c << [5, 9]
     }
 
     def "Demo of strict cardinality in spock"() {
-        setup:
-        promotionsService.setBookDao(bookDao)
         when:
-        def list = promotionsService.getSimplePromotions(null)
+          def list = promotionsService.getSimplePromotions(null)
         then:
-        // If we do not specify a cardinality then it becomes optional
-        // For ex: bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
-        // assumes call to getTop5BooksOnSale is optional
-        1 * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
-        0 * bookDao.getSpecialPromotionsBasedOnUser(_ as User)
+            // If we do not specify a cardinality then it becomes optional
+            // For ex: bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
+            // assumes call to getTop5BooksOnSale is optional
+            1 * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
+            0 * bookDao.getSpecialPromotionsBasedOnUser(_ as User)
     }
 
     def "At least n times cardinality in spock"() {
         setup:
-        promotionsService.setBookDao(bookDao)
+            (1.._) * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
         when:
-        def list = promotionsService.getSimplePromotions(null)
+            def list = promotionsService.getSimplePromotions(null)
         then:
-        (1.._) * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
+            list != null    
     }
 
     def "At most n times cardinality in spock"() {
         setup:
-        promotionsService.setBookDao(bookDao)
+            (_..2) * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
         when:
-        def list = promotionsService.getSimplePromotions(null)
-        list = promotionsService.getSimplePromotions(null)
+            def list = promotionsService.getSimplePromotions(null)
+            list = promotionsService.getSimplePromotions(null)
         then:
-        (_..2) * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
+            list != null
     }
 
 
     def "Get Promotions is passed a null user"() {
         setup:
-        promotionsService.bookDao = bookDao
-        promotionsService.customerSpecialsService = customerSpecialsService
-        promotionsService.weeklySpecialsService = weeklySpecialsService
+            1 * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
+            0 * bookDao.getSpecialPromotionsBasedOnUser(null) >> booksOnSpecialPromotionList
+            0 * customerSpecialsService.applySpecials()
+            1 * customerSpecialsService.getSpecials() >> booksOnSpecialPromotionList
 
         when:
-        final List<Book> promotionList = promotionsService.getPromotions(null);
+            final List<Book> promotionList = promotionsService.getPromotions(null);
 
         then:
-        1 * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
-        0 * bookDao.getSpecialPromotionsBasedOnUser(null) >> booksOnSpecialPromotionList
-        0 * customerSpecialsService.applySpecials()
-        1 * customerSpecialsService.getSpecials() >> booksOnSpecialPromotionList
-        promotionList.size() == 3
+            promotionList.size() == 3
 
     }
 
     def "Get Promotions is passed a non null user"() {
         setup:
-        promotionsService.bookDao = bookDao
-        promotionsService.customerSpecialsService = customerSpecialsService
-        promotionsService.weeklySpecialsService = weeklySpecialsService
+            0 * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
+            1 * bookDao.getSpecialPromotionsBasedOnUser(user) >> booksOnSpecialPromotionList
+            1 * customerSpecialsService.applySpecials(_, _) >> booksOnSpecialPromotionList
+            0 * customerSpecialsService.getSpecials();
 
         when:
-        final List<Book> promotionList = promotionsService.getPromotions(user);
+            final List<Book> promotionList = promotionsService.getPromotions(user);
 
         then:
-        0 * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
-        1 * bookDao.getSpecialPromotionsBasedOnUser(user) >> booksOnSpecialPromotionList
-        1 * customerSpecialsService.applySpecials(_, _) >> booksOnSpecialPromotionList
-        0 * customerSpecialsService.getSpecials();
-        promotionList.size() == 6
+            promotionList.size() == 6
+    }
+
+    @Timeout(2) // make this 1 
+    def "Timeout demo"() {
+        setup:
+            BigDecimal bd = new BigDecimal(5)
+        when:
+            bd = bd.multiply(5)
+            Thread.sleep(1000)
+        then:
+            bd == 25
+
     }
 }
