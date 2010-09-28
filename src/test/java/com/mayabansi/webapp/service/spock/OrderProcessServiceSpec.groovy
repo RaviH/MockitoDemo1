@@ -28,9 +28,6 @@ class OrderProcessServiceSpec extends Specification {
         given:
             cartDao.get(1L) >> { new Cart(13.0D, 2.76D, 4, 3D) };
             mainOrder.getTotalAmount() >> { new BigDecimal(5) };
-            1 * firstStep.addToCart(_, _) >> true;
-            1 * secondStep.updateCartTotal(_, _) >> true;
-            1 * thirdStep.justOrderIt(_) >> true;
 
             OrderProcessService orderProcessService = new OrderProcessService()
                     .setFirstStep(firstStep)
@@ -43,45 +40,13 @@ class OrderProcessServiceSpec extends Specification {
 
         then:
             new BigDecimal(25) == b;
-    }
-
-    def "Mock and give cardinality in setup: ONLY works"() {
-        given:
-            List<Integer> l = Mock()
-            1 * l.get(0) >>  2;
-
-        when:
-            int i = l.get(0);
+            1 * firstStep.addToCart(_, _) >> true;
 
         then:
-            i == 2
-    }
-
-    def "Mock and give cardinality in then: ONLY works"() {
-        given:
-            List<Integer> l = Mock()
-
-        when:
-            int i = l.get(0);
+            1 * secondStep.updateCartTotal(_, _) >> true;
 
         then:
-            1 * l.get(0) >>  2;
-            i == 2
+            1 * thirdStep.justOrderIt(_) >> true;
+
     }
-
-
-    def "Mocking and checking interactions does not work"() {
-        given:
-            List<Integer> l = Mock()
-            l.get(0) >>  2;
-
-        when:
-            int i = l.get(0);
-
-        then:
-            1 * l.get(_)
-            i == 2
-    }
-
-
 }
