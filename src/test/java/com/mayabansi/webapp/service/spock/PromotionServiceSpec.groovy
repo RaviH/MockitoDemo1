@@ -65,37 +65,20 @@ class PromotionServiceSpec extends Specification {
     }
 
 
-    def "Multiple Stubbing #1"() {
+    def "Iterative Stubbing"() {
         setup:
             Book book1 = new Book().setTitle("Book #1");
             Book book2 = new Book().setTitle("Book #2");
-
+            2 * bookDao.get(1L) >>> [book1, book2];
+        
         when:
             def title1 = bookDao.get(1L).getTitle();
             def title2 = bookDao.get(1L).getTitle();
+        
         then:
-            2 * bookDao.get(1L) >>> [book1, book2];
             "Book #1".equals(title1)
             "Book #2".equals(title2)
     }
-
-    def "Multiple Stubbing 2 and 3 from PromotionServiceTest are the same"() {
-        setup:
-            Book book1 = new Book().setTitle("Book #1");
-            Book book2 = new Book().setTitle("Book #2");
-            3 * bookDao.get(1L) >>> [book1, book2, book1];
-
-        when:
-            def title1 = bookDao.get(1L).getTitle();
-            def title2 = bookDao.get(1L).getTitle();
-            def title3 = bookDao.get(1L).getTitle();
-
-        then:
-             "Book #1".equals(title1)
-            "Book #2".equals(title2)
-            "Book #1".equals(title3)
-    }
-
 
     def "In Spock First Stubbing Rules"() {
         setup:
@@ -113,33 +96,53 @@ class PromotionServiceSpec extends Specification {
             "Book #1".equals(title2)
     }
 
-    def "Stub Exceptions in mock methods that return some value"() {
+    def "Stub Exceptions in void and non void mock methods"() {
         given:
             1 * bookDao.get(1L) >> {throw new RuntimeException()}
+            1 * bookDao.remove(1L) >> { throw new RuntimeException() }
         when:
             bookDao.get(1L)
         then:
             thrown(RuntimeException)
-    }
 
-    def "Stub exceptions in mock methods that are void"() {
-        given:
-            1 * bookDao.remove(1L) >> { throw new RuntimeException() }
         when:
             bookDao.remove(1L)
+        
         then:
-
             thrown(RuntimeException)
     }
 
-    def "computing the maximum of two numbers **Demo expect and where**"(int a, int b, int c) {
-        expect:
-            Math.max(a, b) == c
+    def "Show how where works"(Book a, String titleExpected) {
+        setup:
+            1 * bookDao.get(1L) >> { a };
+
+        when:
+            def title1 = bookDao.get(1L).getTitle();
+
+        then:
+            titleExpected.equals(title1)
 
         where:
-            a << [5, 3]
-            b << [1, 9]
-            c << [5, 9]
+            a << [new Book(title: "Book #1"), new Book(title: "Book #2"), new Book(title: "Book #1")]
+            titleExpected << ["Book #1", "Book #2", "Book #1"]
+    }
+
+
+    def "Show how data provider works"(Book a, String titleExpected) {
+        setup:
+            1 * bookDao.get(1L) >> { a };
+
+        when:
+            def title1 = bookDao.get(1L).getTitle();
+
+        then:
+            titleExpected.equals(title1)
+
+        where:
+            a                           | titleExpected
+            new Book(title: "Book #1")  | "Book #1"
+            new Book(title: "Book #2")  | "Book #2"
+            new Book(title: "Book #1")  | "Book #1"
     }
 
     def "Demo of strict cardinality in spock"() {
@@ -172,6 +175,26 @@ class PromotionServiceSpec extends Specification {
             list != null
     }
 
+    def "computing the maximum of two numbers **Demo expect and where**"(int a, int b, int c) {
+        expect:
+            Math.max(a, b) == c
+
+        where:
+            a << [5, 3]
+            b << [1, 9]
+            c << [5, 9]
+    }
+
+    @Timeout(2) // make this 1 during presentation 
+    def "Timeout demo"() {
+        setup:
+            BigDecimal bd = new BigDecimal(5)
+        when:
+            bd = bd.multiply(5)
+            Thread.sleep(1000)
+        then:
+            bd == 25
+    }
 
     def "Get Promotions is passed a null user"() {
         setup:
@@ -185,7 +208,6 @@ class PromotionServiceSpec extends Specification {
 
         then:
             promotionList.size() == 3
-
     }
 
     def "Get Promotions is passed a non null user"() {
@@ -200,17 +222,5 @@ class PromotionServiceSpec extends Specification {
 
         then:
             promotionList.size() == 6
-    }
-
-    @Timeout(2) // make this 1 
-    def "Timeout demo"() {
-        setup:
-            BigDecimal bd = new BigDecimal(5)
-        when:
-            bd = bd.multiply(5)
-            Thread.sleep(1000)
-        then:
-            bd == 25
-
     }
 }
