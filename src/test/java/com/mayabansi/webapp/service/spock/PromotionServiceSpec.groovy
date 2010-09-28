@@ -18,40 +18,6 @@ import spock.lang.Timeout
  */
 class PromotionServiceSpec extends Specification {
 
-    PromotionsService promotionsService
-    User user = new User("ravi.hasija@gmail.com");
-
-    BookDao bookDao = Mock();
-    CustomerSpecialsService customerSpecialsService = Mock()
-    WeeklySpecialsService weeklySpecialsService = Mock()
-
-    List<Book> top5BooksOnSaleList
-    List<Book> booksOnSpecialPromotionList;
-
-    def setup() {
-        promotionsService = new PromotionsService();
-
-        promotionsService.bookDao = bookDao
-        promotionsService.customerSpecialsService = customerSpecialsService
-        promotionsService.weeklySpecialsService = weeklySpecialsService
-
-        user.setId(1L);
-
-        top5BooksOnSaleList = [
-                new Book("Beautiful life", 25.00D, 2005),
-                new Book("Sarasota rocks", 15.00D, 2010),
-                new Book("Music gives soul", 125.00D, 2006),
-                new Book("Mocking using Mockito", 20.00D, 2004),
-                new Book("Why we should?", 99.00D, 2009)
-        ]
-
-        booksOnSpecialPromotionList = [
-                new Book("Beautiful life", 20.00D, 2005),
-                new Book("Sarasota rocks", 10.00D, 2010),
-                new Book("Music gives soul", 100.00D, 2006)
-        ]
-    }
-
     def "Show How Stubbing Works in Spock"() {
         setup:
             1 * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
@@ -112,6 +78,36 @@ class PromotionServiceSpec extends Specification {
             thrown(RuntimeException)
     }
 
+    def "Demo of strict cardinality in spock"() {
+        when:
+          def list = promotionsService.getSimplePromotions(null)
+        then:
+            // If we do not specify a cardinality then it becomes optional
+            // For ex: bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
+            // assumes call to getTop5BooksOnSale is optional
+            1 * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
+            0 * bookDao.getSpecialPromotionsBasedOnUser(_ as User)
+    }
+
+    def "At least n times cardinality in spock"() {
+        setup:
+            (1.._) * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
+        when:
+            def list = promotionsService.getSimplePromotions(null)
+        then:
+            list != null
+    }
+
+    def "At most n times cardinality in spock"() {
+        setup:
+            (_..2) * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
+        when:
+            def list = promotionsService.getSimplePromotions(null)
+            list = promotionsService.getSimplePromotions(null)
+        then:
+            list != null
+    }
+
     def "Show how where works"(Book a, String titleExpected) {
         setup:
             1 * bookDao.get(1L) >> { a };
@@ -144,37 +140,7 @@ class PromotionServiceSpec extends Specification {
             new Book(title: "Book #2")  | "Book #2"
             new Book(title: "Book #1")  | "Book #1"
     }
-
-    def "Demo of strict cardinality in spock"() {
-        when:
-          def list = promotionsService.getSimplePromotions(null)
-        then:
-            // If we do not specify a cardinality then it becomes optional
-            // For ex: bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
-            // assumes call to getTop5BooksOnSale is optional
-            1 * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
-            0 * bookDao.getSpecialPromotionsBasedOnUser(_ as User)
-    }
-
-    def "At least n times cardinality in spock"() {
-        setup:
-            (1.._) * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
-        when:
-            def list = promotionsService.getSimplePromotions(null)
-        then:
-            list != null    
-    }
-
-    def "At most n times cardinality in spock"() {
-        setup:
-            (_..2) * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
-        when:
-            def list = promotionsService.getSimplePromotions(null)
-            list = promotionsService.getSimplePromotions(null)
-        then:
-            list != null
-    }
-
+     
     def "computing the maximum of two numbers **Demo expect and where**"(int a, int b, int c) {
         expect:
             Math.max(a, b) == c
@@ -211,16 +177,51 @@ class PromotionServiceSpec extends Specification {
     }
 
     def "Get Promotions is passed a non null user"() {
-        setup:
+        setup: "Setting up with dummy data"
             0 * bookDao.getTop5BooksOnSale() >> top5BooksOnSaleList
             1 * bookDao.getSpecialPromotionsBasedOnUser(user) >> booksOnSpecialPromotionList
             1 * customerSpecialsService.applySpecials(_, _) >> booksOnSpecialPromotionList
             0 * customerSpecialsService.getSpecials();
 
-        when:
+        when: "There is a user in the HTTP Session"
             final List<Book> promotionList = promotionsService.getPromotions(user);
 
-        then:
+        then: "Size of the list should be as expected"
             promotionList.size() == 6
     }
+
+    PromotionsService promotionsService
+    User user = new User("ravi.hasija@gmail.com");
+
+    BookDao bookDao = Mock();
+    CustomerSpecialsService customerSpecialsService = Mock()
+    WeeklySpecialsService weeklySpecialsService = Mock()
+
+    List<Book> top5BooksOnSaleList
+    List<Book> booksOnSpecialPromotionList;
+
+    def setup() {
+        promotionsService = new PromotionsService();
+
+        promotionsService.bookDao = bookDao
+        promotionsService.customerSpecialsService = customerSpecialsService
+        promotionsService.weeklySpecialsService = weeklySpecialsService
+
+        user.setId(1L);
+
+        top5BooksOnSaleList = [
+                new Book("Beautiful life", 25.00D, 2005),
+                new Book("Sarasota rocks", 15.00D, 2010),
+                new Book("Music gives soul", 125.00D, 2006),
+                new Book("Mocking using Mockito", 20.00D, 2004),
+                new Book("Why we should?", 99.00D, 2009)
+        ]
+
+        booksOnSpecialPromotionList = [
+                new Book("Beautiful life", 20.00D, 2005),
+                new Book("Sarasota rocks", 10.00D, 2010),
+                new Book("Music gives soul", 100.00D, 2006)
+        ]
+    }
+    
 }
