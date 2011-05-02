@@ -64,7 +64,7 @@ public class PromotionServiceTest {
 
         // Regular JUnit Asserts
         assertNotNull(promotionList);
-        assertTrue(promotionList.size() == 0); // <= NOTE: The size of the list is 0 instead of 1.
+        assertTrue(promotionList.size() == 0); // <= NOTE: The size of the list is 0 and NOT 1.
     }
 
     @Test

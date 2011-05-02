@@ -39,24 +39,26 @@ public class OrderProcessServiceTest {
     @Mock
     GenericDao<Cart, Long> cartDao;
 
+    OrderProcessService orderProcessService;
+
     @Before
     public void before() {
+        // Stubbing was done in before method
+        orderProcessService = new OrderProcessService()
+                .setFirstStep(firstStep)
+                .setSecondStep(secondStep)
+                .setThirdStep(thirdStep)
+                .setCartDao(cartDao);
+    }
+
+    @Test
+    public void show_How_InOrder_Works() {
+
         when(cartDao.get(1L)).thenReturn(new Cart(13.0D, 2.76D, 4, 3D));
         when(order.getTotalAmount()).thenReturn(new BigDecimal(5));
         when(firstStep.addToCart(Matchers.<Cart>anyObject(), Matchers.<CartItem>anyObject())).thenReturn(true);
         when(secondStep.updateCartTotal(Matchers.<Cart>anyObject(), Matchers.<CartItem>anyObject())).thenReturn(true);
         when(thirdStep.justOrderIt(Matchers.<Cart>anyObject())).thenReturn(true);
-    }
-
-    @Test
-    public void show_How_InOrder_Works() {
-        // Stubbing was done in before method
-        OrderProcessService orderProcessService = new OrderProcessService()
-                .setFirstStep(firstStep)
-                .setSecondStep(secondStep)
-                .setThirdStep(thirdStep)
-                .setCartDao(cartDao);
-
 
         BigDecimal b = orderProcessService.order(order);
 
