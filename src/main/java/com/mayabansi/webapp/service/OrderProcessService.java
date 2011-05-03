@@ -83,19 +83,4 @@ public class OrderProcessService {
         }
 
     }
-
-    public void slowItDown() throws InterruptedException {
-        log.info("Before sleeping");
-        long t0 = System.currentTimeMillis();
-        long millis = 100;
-        long millisLeft = millis;
-
-        while (millisLeft > 0) {
-            Thread.sleep(millisLeft);
-            long t1 = System.currentTimeMillis();
-            millisLeft = millis - (t1 - t0);
-        }
-        thirdStep.someVeryImportantBusinessMethod();
-    }
-
 }
