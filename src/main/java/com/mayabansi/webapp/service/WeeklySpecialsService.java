@@ -25,7 +25,7 @@ public class WeeklySpecialsService {
             if (orgPrice < 50D) {
                 // Apply 30% discount.
                 newPrice = 0.70 * orgPrice;
-            } else if (orgPrice < 20D && orgPrice < 49.99D) {
+            } else if (orgPrice > 20D && orgPrice < 49.99D) {
                 // Apply 20% discount.
                 newPrice = 0.80 * orgPrice;
             } else {
