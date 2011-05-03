@@ -89,8 +89,8 @@ public class PromotionServiceTest {
         final List<Book> promotionList = promotionsService.getSimplePromotions(user);
 
         // Verification of behavior
-        verify(mockedBookDao, never()).getTop5BooksOnSale();
         verify(mockedBookDao).getSpecialPromotionsBasedOnUser(user);
+        verify(mockedBookDao, never()).getTop5BooksOnSale();
 
         assertNotNull(promotionList);
         assertTrue(promotionList.size() == 3); // Stubbed method being called because the size is 3. The real method returns 1 element list.
@@ -101,12 +101,13 @@ public class PromotionServiceTest {
         Book book1 = new Book().setTitle("Book #1");
         Book book2 = new Book().setTitle("Book #2");
 
-        when(mockedBookDao.get(1L)).thenReturn(book1);
+        when(mockedBookDao.get(1L)).thenReturn(book1).thenReturn(book2);
         assertEquals("Book #1", mockedBookDao.get(1L).getTitle());
 
         when(mockedBookDao.get(1L)).thenReturn(book2);
         assertEquals("Book #2", mockedBookDao.get(1L).getTitle());
     }
+
 
     @Test
     public void show_Multiple_Stubbing_2() {
@@ -195,7 +196,7 @@ public class PromotionServiceTest {
         when(customerSpecialsService.getSpecials()).thenReturn(booksOnSpecialPromotionList);
 
         final PromotionsService promotionsService = new PromotionsService();
-        promotionsService.setBookDao(mockedBookDao); // Look mocked DAO
+        promotionsService.setBookDao(mockedBookDao); // Inject mocked DAO
         promotionsService.setCustomerSpecialsService(customerSpecialsService); // This is mocked too!
         promotionsService.setWeeklySpecialsService(weeklySpecialsService); // And this one too is mocked!
 
